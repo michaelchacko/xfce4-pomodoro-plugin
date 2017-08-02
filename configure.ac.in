@@ -1,20 +1,20 @@
 dnl $Id$
 dnl
-dnl xfce4-sample-plugin - A sample plugin for the Xfce panel
+dnl xfce4-pomodoro-plugin - A sample plugin for the Xfce panel
 dnl
-dnl 2017 John Doo <john@foo.org>
+dnl 2017 Michael Chacko <email@gmail.com>
 dnl
 
 dnl ***************************
 dnl *** Version information ***
 dnl ***************************
-m4_define([sample_version_major], [0])
-m4_define([sample_version_minor], [0])
-m4_define([sample_version_micro], [3])
-m4_define([sample_version_nano],  []) dnl leave this empty to have no nano version
-m4_define([sample_version_build], [@REVISION@])
-m4_define([sample_version_tag], [git])
-m4_define([sample_version], [sample_version_major().sample_version_minor().sample_version_micro()ifelse(sample_version_nano(), [], [], [.sample_version_nano()])ifelse(sample_version_tag(), [git], [sample_version_tag()-sample_version_build()], [sample_version_tag()])])
+m4_define([xfce4_pomodoro_major], [0])
+m4_define([xfce4_pomodoro_minor], [1])
+m4_define([xfce4_pomodoro_micro], [0])
+m4_define([xfce4_pomodoro_nano],  []) dnl leave this empty to have no nano version
+m4_define([xfce4_pomodoro_build], [@REVISION@])
+m4_define([xfce4_pomodoro_tag], [git])
+m4_define([xfce4_pomodoro], [xfce4_pomodoro_major().xfce4_pomodoro_minor().xfce4_pomodoro_micro()ifelse(xfce4_pomodoro_nano(), [], [], [.xfce4_pomodoro_nano()])ifelse(xfce4_pomodoro_tag(), [git], [xfce4_pomodoro_tag()-xfce4_pomodoro_build()], [xfce4_pomodoro_tag()])])
 
 AC_CONFIG_MACRO_DIR([m4])
 dnl ***************************
@@ -22,7 +22,7 @@ dnl *** Initialize autoconf ***
 dnl ***************************
 AC_COPYRIGHT([Copyright (C) 2017
         The Xfce development team. All rights reserved.])
-AC_INIT([xfce4-sample-plugin], [sample_version], [https://bugzilla.xfce.org/], [xfce4-sample-plugin])
+AC_INIT([xfce4-pomodoro-plugin], [xfce4_pomodoro], [https://bugzilla.xfce.org/], [xfce4-pomodoro-plugin])
 AC_PREREQ([2.50])
 AC_REVISION([xfce4_panel_version_build])
 

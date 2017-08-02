@@ -1,0 +1,10 @@
+[Xfce Panel]
+Type=X-XFCE-PanelPlugin
+Encoding=UTF-8
+_Name=NEW Pomodoro Timer Plugin
+_Comment=Pomodoro plugin for the Xfce panel
+Icon=xfce4-pomodoro-plugin
+X-XFCE-Module=xfcepomodoro
+X-XFCE-Internal=false
+X-XFCE-Unique=false
+X-XFCE-API=2.0
