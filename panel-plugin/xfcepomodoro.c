@@ -276,12 +276,11 @@ static void pomodoro_construct (XfcePanelPlugin *plugin) {
                     G_CALLBACK (sample_about), NULL);
 
 }
-
 static
 void start_pomodoro (PomodoroPlugin *pomodoroPlugin){
   
   //TODO: CHANGING FROM 0 CAUSES ERROR. PLZ DEBUG
-  pomodoroPlugin->timeout_period_in_sec = 0;
+  pomodoroPlugin->timeout_period_in_sec = 2;
   pomodoroPlugin->pomodoro_is_running = TRUE;
 
   //start ticking sound
@@ -355,10 +354,14 @@ void pbar_clicked (GtkWidget *pbar,
 
 void
 pomodoro_plugin_make_menu (PomodoroPlugin *pomodoroPlugin) {
+  
+
+    //TODO: Find out if it's neccessary to destroy the menu. it seems to 
+    //      cause problems when repeating tmers 
     /* Destroy the existing one */
-    if(pomodoroPlugin->menu){
-      gtk_widget_destroy(pomodoroPlugin->menu);
-    }
+    //if(pomodoroPlugin->menu){
+    //  gtk_widget_destroy(pomodoroPlugin->menu);
+    //}
 
 	pomodoroPlugin->menu = gtk_menu_new();
 
