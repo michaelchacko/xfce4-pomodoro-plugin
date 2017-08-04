@@ -78,7 +78,6 @@ void sample_save (XfcePanelPlugin *plugin, PomodoroPlugin    *pomodoroPlugin);
 
 static
 void pbar_clicked (GtkWidget *pbar, GdkEventButton *event, PomodoroPlugin *pomodoroPlugin);                                        
-
 void
 pomodoro_plugin_make_menu (PomodoroPlugin *pomodoroplugin);
 
