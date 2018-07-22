@@ -196,6 +196,8 @@ static void sample_free (XfcePanelPlugin *plugin, PomodoroPlugin *pomodoroPlugin
 
   /* free the plugin structure */
   panel_slice_free (PomodoroPlugin, pomodoroPlugin);
+
+  printf("FREEE");
 }
 
 
@@ -227,6 +229,7 @@ sample_size_changed (XfcePanelPlugin *plugin,
   else
     gtk_widget_set_size_request (GTK_WIDGET (plugin), size, -1);
 
+
   /* we handled the orientation */
   return TRUE;
 }
@@ -248,8 +251,8 @@ static void pomodoro_construct (XfcePanelPlugin *plugin) {
   xfce_panel_plugin_add_action_widget (plugin, pomodoroPlugin->ebox);
 
   /* connect plugin signals */
-  //g_signal_connect (G_OBJECT (plugin), "free-data",
-  //                  G_CALLBACK (sample_free), pomodoroPlugin);
+  g_signal_connect (G_OBJECT (plugin), "free-data",
+                    G_CALLBACK (sample_free), pomodoroPlugin);
 
   g_signal_connect (G_OBJECT (plugin), "save",
                     G_CALLBACK (sample_save), pomodoroPlugin);
@@ -263,7 +266,6 @@ static void pomodoro_construct (XfcePanelPlugin *plugin) {
   //WHEN PANEL IS PRESSED
   g_signal_connect  (G_OBJECT(plugin), "button_press_event",
                     G_CALLBACK(pbar_clicked), pomodoroPlugin);
-
   /* show the configure menu item and connect signal */
   xfce_panel_plugin_menu_show_configure (plugin);
   g_signal_connect (G_OBJECT (plugin), "configure-plugin",
@@ -274,7 +276,9 @@ static void pomodoro_construct (XfcePanelPlugin *plugin) {
   g_signal_connect (G_OBJECT (plugin), "about",
                     G_CALLBACK (sample_about), NULL);
 
+
 }
+
 static
 void start_pomodoro (PomodoroPlugin *pomodoroPlugin){
   

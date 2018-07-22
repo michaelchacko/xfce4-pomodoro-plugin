@@ -134,7 +134,7 @@ void sample_about (XfcePanelPlugin *plugin) {
                          "program-name", PACKAGE_NAME,
                          "comments",     _("A plugin for the Pomodoro time management technique"),
                          "website",      PLUGIN_WEBSITE,
-                         "copyright",    _("Copyright \xc2\xa9 2017 Michael Chacko\n"),
+                         "copyright",    _("Copyright \xc2\xa9 2018 Michael Chacko\n"),
                          "authors",      auth,
                          NULL);
 
