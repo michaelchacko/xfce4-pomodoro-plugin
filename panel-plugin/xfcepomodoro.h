@@ -56,12 +56,8 @@ typedef struct {
 
     /* alarm data */
     guint      timeout;  /* timeout IDs*/
-
     gint       timeout_period_in_sec;
     
-    gboolean   alarm_is_pomodoro,
-               alarm_is_break;
-
     gboolean   timer_on; /* TRUE if countdown is in progress*/
 
     GTimer    *timer;    /* The timer. */
@@ -72,14 +68,17 @@ typedef struct {
 static gboolean update_function(gpointer data);
 
 static
-void start_pomodoro (PomodoroPlugin *pomodoroPlugin);
+void start_timer (GtkWidget *pbar, PomodoroPlugin *pomodoroPlugin);
+
+static
+void stop_timer (GtkWidget *pbar, PomodoroPlugin *pomodoroPlugin);
 
 void sample_save (XfcePanelPlugin *plugin, PomodoroPlugin    *pomodoroPlugin);
 
 static
 void pbar_clicked (GtkWidget *pbar, GdkEventButton *event, PomodoroPlugin *pomodoroPlugin);                                        
 void
-pomodoro_plugin_make_menu (PomodoroPlugin *pomodoroplugin);
+pomodoro_plugin_make_menu (PomodoroPlugin *pomodoroPlugin);
 
 G_END_DECLS
 

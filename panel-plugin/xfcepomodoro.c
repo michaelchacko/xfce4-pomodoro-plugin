@@ -25,6 +25,7 @@
 #endif
 
 #include <stdlib.h>
+#include <assert.h>
 #include <unistd.h>
 
 #include <gtk/gtk.h>
@@ -42,8 +43,8 @@
 
 #define UPDATE_INTERVAL 2000 //update period interval in millisecs
 
-#define POMODORO_PERIOD 25*60 //pomodoro period in seconds
-#define BREAK_PERIOD    5*60  //break period in seconds
+#define POMODORO_PERIOD 25 //pomodoro period in minutes
+#define BREAK_PERIOD    5  //break period in minutes
 
 /* prototypes */
 static void
@@ -141,7 +142,12 @@ static PomodoroPlugin *pomodoroPlugin_new (XfcePanelPlugin *plugin){
   GtkWidget      *label;
 
   /* allocate memory for the plugin structure */
-  PomodoroPlugin *pomodoroPlugin = g_slice_new0(PomodoroPlugin);
+  PomodoroPlugin *pomodoroPlugin = g_new0(PomodoroPlugin, 1);
+
+  pomodoroPlugin->pomodoro_is_running = FALSE;
+  pomodoroPlugin->break_is_running= FALSE;
+  pomodoroPlugin->timer_on = FALSE;
+  pomodoroPlugin->timeout = 0;
 
   /* pointer to plugin */
   pomodoroPlugin->plugin = plugin;
@@ -161,10 +167,11 @@ static PomodoroPlugin *pomodoroPlugin_new (XfcePanelPlugin *plugin){
   gtk_container_add (GTK_CONTAINER (pomodoroPlugin->ebox), pomodoroPlugin->hvbox);
 
   /* some sample widgets */
-  label = gtk_label_new ("P");
+  label = gtk_label_new (""); //edit me to add text to plugin icon
   gtk_widget_show (label);
 
   //CREATE ICON FOR PANEL
+  // TODO make image path dynamic for different users
   pomodoroPlugin->tomato_icon_pixbuf = gdk_pixbuf_new_from_file_at_scale ("/home/michael/repos/xfce4-pomodoro-plugin/icons/48x48/xfce4-pomodoro-plugin.png", 20, 20, FALSE, NULL);
 
   pomodoroPlugin->tomato_icon = gtk_image_new_from_pixbuf(pomodoroPlugin->tomato_icon_pixbuf);
@@ -189,6 +196,8 @@ static void sample_free (XfcePanelPlugin *plugin, PomodoroPlugin *pomodoroPlugin
 
   /* destroy the panel widgets */
   gtk_widget_destroy (pomodoroPlugin->hvbox);
+  if(pomodoroPlugin->timer)
+    g_timer_destroy(pomodoroPlugin->timer);
 
   /* cleanup the settings */
   if (G_LIKELY (pomodoroPlugin->setting1 != NULL))
@@ -196,8 +205,6 @@ static void sample_free (XfcePanelPlugin *plugin, PomodoroPlugin *pomodoroPlugin
 
   /* free the plugin structure */
   panel_slice_free (PomodoroPlugin, pomodoroPlugin);
-
-  printf("FREEE");
 }
 
 
@@ -263,9 +270,6 @@ static void pomodoro_construct (XfcePanelPlugin *plugin) {
   g_signal_connect (G_OBJECT (plugin), "orientation-changed",
                     G_CALLBACK (sample_orientation_changed), pomodoroPlugin);
 
-  //WHEN PANEL IS PRESSED
-  g_signal_connect  (G_OBJECT(plugin), "button_press_event",
-                    G_CALLBACK(pbar_clicked), pomodoroPlugin);
   /* show the configure menu item and connect signal */
   xfce_panel_plugin_menu_show_configure (plugin);
   g_signal_connect (G_OBJECT (plugin), "configure-plugin",
@@ -276,53 +280,70 @@ static void pomodoro_construct (XfcePanelPlugin *plugin) {
   g_signal_connect (G_OBJECT (plugin), "about",
                     G_CALLBACK (sample_about), NULL);
 
+  //WHEN PANEL IS PRESSED
+  g_signal_connect  (G_OBJECT(plugin), "button_press_event",
+                    G_CALLBACK(pbar_clicked), pomodoroPlugin);
 
 }
 
+/*callback function to start the pomodoro timer! */
 static
-void start_pomodoro (PomodoroPlugin *pomodoroPlugin){
-  
-  pomodoroPlugin->timeout_period_in_sec = POMODORO_PERIOD;
+void start_timer (GtkWidget *pbar, PomodoroPlugin *pomodoroPlugin){
 
-  //start ticking sound
-  system("mplayer ~/repos/xfce4-pomodoro-plugin/audio/ticking.flac &");
+    //TODO put in logic to determine if its a pomodoro or a break
+    pomodoroPlugin->pomodoro_is_running = TRUE;
+    pomodoroPlugin->break_is_running = TRUE;
 
-  if(!pomodoroPlugin->timer){
-    printf("REACHED0.1\n");
+    if(pomodoroPlugin->pomodoro_is_running)
+        pomodoroPlugin->timeout_period_in_sec = POMODORO_PERIOD * 60;
+    else if(pomodoroPlugin->break_is_running)
+        pomodoroPlugin->timeout_period_in_sec = BREAK_PERIOD * 60;
+
+    //play ticking sound
+    //TODO get this working without mplayer
+    system("mplayer ~/repos/xfce4-pomodoro-plugin/audio/ticking.flac > /dev/null 2>&1 &");
+
+    if(pomodoroPlugin->timer) {
+        g_timer_destroy(pomodoroPlugin->timer);
+    }    
+    
     pomodoroPlugin->timer = g_timer_new();
-    printf("REACHED0.2\n");
-  }
+    pomodoroPlugin->timer_on = TRUE;
 
-  printf("REACHED1.1\n");
-  g_timer_stop(pomodoroPlugin->timer);
-  printf("REACHED1.2\n");
-   
-  printf("REACHED1.2\n");
+    pomodoroPlugin->timeout = g_timeout_add(UPDATE_INTERVAL, update_function, pomodoroPlugin);
 
-  pomodoroPlugin->timer_on = TRUE;
-  pomodoroPlugin->pomodoro_is_running = TRUE;
-  
-  printf("REACHED2.1\n");
-  //TODO find out why this causes crash
-  //g_timer_start(pomodoroPlugin->timer);
-  printf("REACHED2.2\n");
-  
-  /*
-  pomodoroPlugin->timeout = g_timeout_add(UPDATE_INTERVAL, update_function, pomodoroPlugin);
-  */
 }
 
-//update_function(PomodoroPlugin *pp)
-//returns TRUE if timer is still running
-//returns FALSE if timer is NOT running
+//callback function to stop a timer
+static
+void stop_timer (GtkWidget *pbar, PomodoroPlugin *pomodoroPlugin){
+
+    pomodoroPlugin->pomodoro_is_running = FALSE;
+    pomodoroPlugin->break_is_running = FALSE;
+
+    if(pomodoroPlugin->timer)
+       g_timer_destroy(pomodoroPlugin->timer);
+    if(pomodoroPlugin->timeout)
+       g_source_remove(pomodoroPlugin->timeout);
+
+    pomodoroPlugin->timer = NULL;
+    pomodoroPlugin->timeout = 0;
+    pomodoroPlugin->timer_on = FALSE;
+
+    return;
+}
+
+//runs every UPDATE_INTERVAL milliseconds while timer is running
 static
 gboolean update_function(gpointer data){
+    //returns TRUE if timer is still running
+    //returns FALSE if timer is NOT running
 
-    PomodoroPlugin *pomodoroPlugin=(PomodoroPlugin *)data;
+    PomodoroPlugin *pomodoroPlugin = (PomodoroPlugin *)data;
 
     gint elapsed_sec, remaining; 
-
     elapsed_sec=(gint)g_timer_elapsed(pomodoroPlugin->timer,NULL);
+    printf("your int is %d\n", elapsed_sec);
     
     //if timer is still running
     if(elapsed_sec < pomodoroPlugin->timeout_period_in_sec){
@@ -336,11 +357,10 @@ gboolean update_function(gpointer data){
        g_timer_destroy(pomodoroPlugin->timer);
     }
     pomodoroPlugin->timer=NULL;
-    
-    pomodoroPlugin->timeout=0;
 
+    //reset plugin variables
+    pomodoroPlugin->timeout=0;
     pomodoroPlugin->timer_on=FALSE;
-    
 
     return FALSE;
 }
@@ -358,55 +378,57 @@ void pbar_clicked (GtkWidget *pbar,
     }
 
     //check state of toggle button
+    guint LEFT_MOUSE_BUTTON = 1; //from gdk online api
 
-    if(event->button==1){
+    if(event->button==LEFT_MOUSE_BUTTON){
       if(!pomodoroPlugin->menu){
-        printf("DOESNT EXISTS\n");
       }
       else {
-        printf("IT DOES EXIST\n");
       }
       gtk_menu_popup_at_widget (GTK_MENU(pomodoroPlugin->menu), 
                                 pomodoroPlugin->hvbox,       
                                 GDK_GRAVITY_NORTH_WEST,     
                                 GDK_GRAVITY_NORTH_WEST,    
                                 (GdkEvent *) event); // Used to be NULL
-      printf("popped\n");
     } else {
       gtk_menu_popdown(GTK_MENU(pomodoroPlugin->menu));
     }
+
 }
 
 void
 pomodoro_plugin_make_menu (PomodoroPlugin *pomodoroPlugin) {
-  
 
-    //TODO: Find out if it's neccessary to destroy the menu. it seems to 
+
+  //TODO: Find out if it's neccessary to destroy the menu. it seems to 
     //      cause problems when repeating tmers 
     /* Destroy the existing one */
     if(pomodoroPlugin->menu){
-      //gtk_widget_destroy(GTK_WIDGET(pomodoroPlugin->menu));
+      gtk_widget_destroy(GTK_WIDGET(pomodoroPlugin->menu));
     }
 
 	pomodoroPlugin->menu = gtk_menu_new();
 
     /* Start pomodoro menu item */
-	pomodoroPlugin->mi_start_pomodoro = gtk_menu_item_new_with_label ("Start my pomodoro");
-	gtk_menu_shell_append (GTK_MENU_SHELL(pomodoroPlugin->menu),
-	                       pomodoroPlugin->mi_start_pomodoro);
-    g_signal_connect  (G_OBJECT(pomodoroPlugin->mi_start_pomodoro), "activate",
-                       G_CALLBACK(start_pomodoro), pomodoroPlugin);
-	gtk_widget_show(pomodoroPlugin->mi_start_pomodoro);
-
+    if(!pomodoroPlugin->pomodoro_is_running){
+        pomodoroPlugin->mi_start_pomodoro = gtk_menu_item_new_with_label ("Start a pomodoro");
+        gtk_menu_shell_append (GTK_MENU_SHELL(pomodoroPlugin->menu),
+                               pomodoroPlugin->mi_start_pomodoro);
+        g_signal_connect  (G_OBJECT(pomodoroPlugin->mi_start_pomodoro), "activate",
+                           G_CALLBACK(start_timer), pomodoroPlugin);
+        gtk_widget_show(pomodoroPlugin->mi_start_pomodoro);
+    }
+    else {
     /* Stop pomodoro menu item */
-	pomodoroPlugin->mi_stop_pomodoro  = gtk_menu_item_new_with_label ("Stop");
-	gtk_menu_shell_append (GTK_MENU_SHELL(pomodoroPlugin->menu),
-	                       pomodoroPlugin->mi_stop_pomodoro);
-    //g_signal_connect  (G_OBJECT(pomodoroPlugin->mi_stop_pomodoro), "activate",
-    //                   G_CALLBACK(start_pomodoro), pomodoroPlugin);
-	gtk_widget_show(pomodoroPlugin->mi_stop_pomodoro);
+        pomodoroPlugin->mi_stop_pomodoro  = gtk_menu_item_new_with_label ("Stop");
+        gtk_menu_shell_append (GTK_MENU_SHELL(pomodoroPlugin->menu),
+                               pomodoroPlugin->mi_stop_pomodoro);
+        g_signal_connect  (G_OBJECT(pomodoroPlugin->mi_stop_pomodoro), "activate",
+                           G_CALLBACK(stop_timer), pomodoroPlugin);
+        gtk_widget_show(pomodoroPlugin->mi_stop_pomodoro);
 
-	gtk_widget_show(pomodoroPlugin->menu);
+        gtk_widget_show(pomodoroPlugin->menu);
+    }
 }
 
 
