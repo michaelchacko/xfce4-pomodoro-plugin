@@ -45,7 +45,7 @@
 
 #define UPDATE_INTERVAL 2000 //update period interval in millisecs
 
-#define POMODORO_PERIOD 1 //pomodoro period in minutes
+#define POMODORO_PERIOD 25 //pomodoro period in minutes
 #define BREAK_PERIOD    5  //break period in minutes
 
 #define PBAR_THICKNESS 15 
