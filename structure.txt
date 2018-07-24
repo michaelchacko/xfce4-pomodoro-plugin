@@ -1,0 +1,12 @@
+xfcepomodoro.c : main program
+    handles program logic
+
+xfcepomodoro-menu.c : click/menu is here 
+    creates a menu depening on timer state
+
+xfcepomodoro-dialogs.c : all dialogs popups are here
+    settings dialog
+        save settings between sessions
+    timer finished dialog
+        option to start a break timer
+    about dialog
