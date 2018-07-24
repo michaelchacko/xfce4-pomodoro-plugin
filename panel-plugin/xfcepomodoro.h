@@ -28,7 +28,8 @@ typedef struct {
     
     /* panel widgets */
     GtkWidget *ebox;
-    GtkWidget *hvbox; //?? box seen on panel
+    GtkWidget *hvbox; //horizontal/vertial box seen on panel
+    GtkWidget *pbar;  //progress bar to see time remaining
     GtkWidget *label;
 
     /*  */
@@ -66,6 +67,9 @@ typedef struct {
 } PomodoroPlugin;
 
 static gboolean update_function(gpointer data);
+
+static
+void add_pbar(PomodoroPlugin *pomodoroPlugin);
 
 static
 void start_timer (GtkWidget *pbar, PomodoroPlugin *pomodoroPlugin);

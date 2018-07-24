@@ -30,6 +30,8 @@
 
 #include <gtk/gtk.h>
 #include <libxfce4util/libxfce4util.h>
+#include <libxfce4ui/libxfce4ui.h>
+#include <libxfce4panel/libxfce4panel.h>
 #include <libxfce4panel/xfce-panel-plugin.h>
 
 #include "xfcepomodoro.h"
@@ -43,8 +45,10 @@
 
 #define UPDATE_INTERVAL 2000 //update period interval in millisecs
 
-#define POMODORO_PERIOD 25 //pomodoro period in minutes
+#define POMODORO_PERIOD 1 //pomodoro period in minutes
 #define BREAK_PERIOD    5  //break period in minutes
+
+#define PBAR_THICKNESS 15 
 
 /* prototypes */
 static void
@@ -162,9 +166,11 @@ static PomodoroPlugin *pomodoroPlugin_new (XfcePanelPlugin *plugin){
   pomodoroPlugin->ebox = gtk_event_box_new();
   gtk_widget_show (pomodoroPlugin->ebox);
 
-  pomodoroPlugin->hvbox = gtk_box_new (orientation, 2);
-  gtk_widget_show (pomodoroPlugin->hvbox);
+  pomodoroPlugin->hvbox = gtk_box_new (orientation, 4);
   gtk_container_add (GTK_CONTAINER (pomodoroPlugin->ebox), pomodoroPlugin->hvbox);
+  add_pbar(pomodoroPlugin);
+
+  gtk_widget_show (pomodoroPlugin->hvbox);
 
   /* some sample widgets */
   label = gtk_label_new (""); //edit me to add text to plugin icon
@@ -301,7 +307,8 @@ void start_timer (GtkWidget *pbar, PomodoroPlugin *pomodoroPlugin){
 
     //play ticking sound
     //TODO get this working without mplayer
-    system("mplayer ~/repos/xfce4-pomodoro-plugin/audio/ticking.flac > /dev/null 2>&1 &");
+    //TODO add check box to config dialog to control audio settings
+    system("mplayer ~/repos/xfce4-pomodoro-plugin/audio/ticking.flac &");
 
     if(pomodoroPlugin->timer) {
         g_timer_destroy(pomodoroPlugin->timer);
@@ -309,6 +316,9 @@ void start_timer (GtkWidget *pbar, PomodoroPlugin *pomodoroPlugin){
     
     pomodoroPlugin->timer = g_timer_new();
     pomodoroPlugin->timer_on = TRUE;
+
+    //set progress bar to full
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pomodoroPlugin->pbar), 1); 
 
     pomodoroPlugin->timeout = g_timeout_add(UPDATE_INTERVAL, update_function, pomodoroPlugin);
 
@@ -330,6 +340,8 @@ void stop_timer (GtkWidget *pbar, PomodoroPlugin *pomodoroPlugin){
     pomodoroPlugin->timeout = 0;
     pomodoroPlugin->timer_on = FALSE;
 
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pomodoroPlugin->pbar), 0);
+
     return;
 }
 
@@ -343,14 +355,16 @@ gboolean update_function(gpointer data){
 
     gint elapsed_sec, remaining; 
     elapsed_sec=(gint)g_timer_elapsed(pomodoroPlugin->timer,NULL);
-    printf("your int is %d\n", elapsed_sec);
     
     //if timer is still running
     if(elapsed_sec < pomodoroPlugin->timeout_period_in_sec){
         remaining=pomodoroPlugin->timeout_period_in_sec-elapsed_sec;
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pomodoroPlugin->pbar),                        1.0-((gdouble)elapsed_sec)/pomodoroPlugin->timeout_period_in_sec); 
     
         return TRUE;
     }
+
+    system("mplayer ~/repos/xfce4-pomodoro-plugin/audio/alert.wav > /dev/null 2>&1");
 
     // else countdown is over, stop timer and free resources //
     if(pomodoroPlugin->timer){
@@ -358,6 +372,7 @@ gboolean update_function(gpointer data){
     }
     pomodoroPlugin->timer=NULL;
 
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pomodoroPlugin->pbar), 0); 
     //reset plugin variables
     pomodoroPlugin->timeout=0;
     pomodoroPlugin->timer_on=FALSE;
@@ -396,9 +411,32 @@ void pbar_clicked (GtkWidget *pbar,
 
 }
 
+/**
+ * Adds the progressbar, NOT taking into account the orientation.
+ * TODO change it to match the xfcetimer plugin to account for orientation of entire xfce panel
+ * TODO make progress bar wider
+**/
+static void add_pbar(PomodoroPlugin *pd){
+
+    //pbar already exists
+    if(pd->pbar)
+        return;
+
+    pd->pbar = gtk_progress_bar_new();
+
+    gtk_box_pack_start(GTK_BOX(pd->hvbox),pd->pbar,FALSE,FALSE,0);    
+
+    gtk_orientable_set_orientation (GTK_ORIENTABLE(pd->pbar),
+                                    GTK_ORIENTATION_VERTICAL);
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pd->pbar), 0.0);
+    gtk_progress_bar_set_inverted(GTK_PROGRESS_BAR(pd->pbar), TRUE);
+
+    gtk_widget_show(pd->pbar);
+
+}
+
 void
 pomodoro_plugin_make_menu (PomodoroPlugin *pomodoroPlugin) {
-
 
   //TODO: Find out if it's neccessary to destroy the menu. it seems to 
     //      cause problems when repeating tmers 
@@ -410,7 +448,7 @@ pomodoro_plugin_make_menu (PomodoroPlugin *pomodoroPlugin) {
 	pomodoroPlugin->menu = gtk_menu_new();
 
     /* Start pomodoro menu item */
-    if(!pomodoroPlugin->pomodoro_is_running){
+    if(!pomodoroPlugin->timer_on){
         pomodoroPlugin->mi_start_pomodoro = gtk_menu_item_new_with_label ("Start a pomodoro");
         gtk_menu_shell_append (GTK_MENU_SHELL(pomodoroPlugin->menu),
                                pomodoroPlugin->mi_start_pomodoro);
