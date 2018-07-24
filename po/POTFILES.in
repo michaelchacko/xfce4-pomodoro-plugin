@@ -1,3 +1,4 @@
 panel-plugin/xfcepomodoro.c
 panel-plugin/xfcepomodoro-dialogs.c
+panel-plugin/xfcepomodoro-config.c
 panel-plugin/xfce4-pomodoro-plugin.desktop.in

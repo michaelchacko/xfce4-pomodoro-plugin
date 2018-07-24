@@ -1,38 +1,18 @@
-/*  $Id$
- *
- *  Copyright (C) 2012 John Doo <john@foo.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
-#ifndef __SAMPLE_H__
-#define __SAMPLE_H__
-
+#ifndef __XFCEPOMODORO_H__
+#define __XFCEPOMODORO_H__
 G_BEGIN_DECLS
 
 /* plugin structure */
 typedef struct {
-    XfcePanelPlugin *plugin;
+    XfcePanelPlugin *xfcePlugin;
     
     /* panel widgets */
-    GtkWidget *ebox;
+    GtkWidget *ebox;  //event box
     GtkWidget *hvbox; //horizontal/vertial box seen on panel
     GtkWidget *pbar;  //progress bar to see time remaining
-    GtkWidget *label;
+    GtkWidget *label; //
 
-    /*  */
+    /* icon  */
     GtkWidget *tomato_icon;
     GdkPixbuf *tomato_icon_pixbuf;
 
@@ -66,24 +46,22 @@ typedef struct {
 
 } PomodoroPlugin;
 
-static gboolean update_function(gpointer data);
+/* function prototypes */
 
-static
-void add_pbar(PomodoroPlugin *pomodoroPlugin);
+static void pomodoro_construct(XfcePanelPlugin *plugin); 
+static PomodoroPlugin *pomodoroPlugin_new(XfcePanelPlugin *plugin); 
+static void plugin_free (XfcePanelPlugin *plugin, PomodoroPlugin *pd);
 
-static
-void start_timer (GtkWidget *pbar, PomodoroPlugin *pomodoroPlugin);
+static void make_menu(PomodoroPlugin *pd);
+static void make_pbar(PomodoroPlugin *pd);
+static void plugin_clicked(GtkWidget *pbar, GdkEventButton *event, PomodoroPlugin *pd);
 
-static
-void stop_timer (GtkWidget *pbar, PomodoroPlugin *pomodoroPlugin);
-
-void sample_save (XfcePanelPlugin *plugin, PomodoroPlugin    *pomodoroPlugin);
-
-static
-void pbar_clicked (GtkWidget *pbar, GdkEventButton *event, PomodoroPlugin *pomodoroPlugin);                                        
-void
-pomodoro_plugin_make_menu (PomodoroPlugin *pomodoroPlugin);
+static void plugin_orientation_changed(XfcePanelPlugin *plugin,
+                                       GtkOrientation   orientation,
+                                       PomodoroPlugin  *pd);
+static gboolean plugin_size_changed(XfcePanelPlugin *plugin,                              
+                                    gint size,                                            
+                                    PomodoroPlugin *pd);
 
 G_END_DECLS
-
 #endif /* !__SAMPLE_H__ */

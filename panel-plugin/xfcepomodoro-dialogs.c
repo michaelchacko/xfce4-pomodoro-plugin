@@ -1,22 +1,3 @@
-/*  $Id$
- *
- *  Copyright (C) 2012 John Doo <john@foo.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -29,16 +10,16 @@
 
 #include "xfcepomodoro.h"
 #include "xfcepomodoro-dialogs.h"
+#include "xfcepomodoro-config.h"
+#include "xfcepomodoro-timer.h"
 
-/* the website url */
+/* website url */
 #define PLUGIN_WEBSITE "http://chackotaco.github.io/"
 
-
-
 static void
-sample_configure_response (GtkWidget    *dialog,
+plugin_configure_response (GtkWidget    *dialog,
                            gint          response,
-                           PomodoroPlugin *pomodoroPlugin) {
+                           PomodoroPlugin *pd) {
   gboolean result;
 
   if (response == GTK_RESPONSE_HELP)
@@ -52,21 +33,21 @@ sample_configure_response (GtkWidget    *dialog,
   else
     {
       /* remove the dialog data from the plugin */
-      g_object_set_data (G_OBJECT (pomodoroPlugin->plugin), "dialog", NULL);
+      g_object_set_data (G_OBJECT (pd->xfcePlugin), "dialog", NULL);
 
       /* unlock the panel menu */
-      xfce_panel_plugin_unblock_menu (pomodoroPlugin->plugin);
+      xfce_panel_plugin_unblock_menu (pd->xfcePlugin);
 
       /* save the plugin */
-      sample_save (pomodoroPlugin->plugin, pomodoroPlugin);
+      config_save(pd->xfcePlugin, pd);
 
       /* destroy the properties dialog */
       gtk_widget_destroy (dialog);
     }
 }
 
-void sample_configure (XfcePanelPlugin *plugin,
-                       PomodoroPlugin    *pomodoroPlugin) {
+void plugin_configure (XfcePanelPlugin *plugin,
+                       PomodoroPlugin    *pd) {
   GtkWidget *dialog;
   GtkWidget *content_area;
 
@@ -98,7 +79,7 @@ void sample_configure (XfcePanelPlugin *plugin,
 
   /* connect the reponse signal to the dialog */
   g_signal_connect (G_OBJECT (dialog), "response",
-                    G_CALLBACK(sample_configure_response), pomodoroPlugin);
+                    G_CALLBACK(plugin_configure_response), pd);
 
   /* checkbox for ticking sound*/
   checkbox_play_ticking = gtk_check_button_new_with_label ("Play ticking sound?");
@@ -114,7 +95,7 @@ void sample_configure (XfcePanelPlugin *plugin,
 
 
 
-void sample_about (XfcePanelPlugin *plugin) {
+void plugin_about (XfcePanelPlugin *plugin) {
 
   /* about dialog code. you can use the GtkAboutDialog
    * or the XfceAboutInfo widget */

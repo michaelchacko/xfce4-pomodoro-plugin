@@ -17,7 +17,11 @@ libxfcepomodoro_la_SOURCES = \
 	xfcepomodoro.c \
 	xfcepomodoro.h \
 	xfcepomodoro-dialogs.c \
-	xfcepomodoro-dialogs.h
+	xfcepomodoro-dialogs.h \
+	xfcepomodoro-config.c \
+	xfcepomodoro-config.h \
+	xfcepomodoro-timer.c \
+	xfcepomodoro-timer.h
 
 libxfcepomodoro_la_CFLAGS = \
 	$(LIBXFCE4UTIL_CFLAGS) \
