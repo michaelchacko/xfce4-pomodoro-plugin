@@ -16,8 +16,7 @@
 #define DEFAULT_SETTING2 1
 #define DEFAULT_SETTING3 FALSE
 
-void
-config_save (XfcePanelPlugin *plugin,
+void config_save (XfcePanelPlugin *plugin,
              PomodoroPlugin    *pd)
 {
   XfceRc *rc;
@@ -51,8 +50,7 @@ config_save (XfcePanelPlugin *plugin,
     }
 }
 
-void
-config_read (PomodoroPlugin *pd)
+void config_read (PomodoroPlugin *pd)
 {
   XfceRc      *rc;
   gchar       *file;
