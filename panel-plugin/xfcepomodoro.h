@@ -12,6 +12,10 @@ typedef struct {
     GtkWidget *pbar;  //progress bar to see time remaining
     GtkWidget *label; //
 
+    /*configure menu widgets*/
+    GtkWidget *checkbox_play_ticking;
+    GtkWidget *checkbox_play_alarms;
+
     /* icon  */
     GtkWidget *tomato_icon;
     GdkPixbuf *tomato_icon_pixbuf;

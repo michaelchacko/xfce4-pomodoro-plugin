@@ -88,6 +88,9 @@ static PomodoroPlugin * pomodoroPlugin_new(XfcePanelPlugin *plugin)
     pd->timer_on = FALSE;
     pd->timeout = 0;
 
+    pd->play_ticking = TRUE;
+    pd->play_alarms = TRUE;
+
     /* read the user settings */
     config_read (pd);
 
@@ -175,7 +178,6 @@ static void make_pbar(PomodoroPlugin *pd)
 
 static void make_menu(PomodoroPlugin *pd)
 {
-  //TODO: Find out if it's neccessary to destroy the menu. it seems to 
     /* Destroy the existing menu if it exists */
     if(pd->menu)
         gtk_widget_destroy(GTK_WIDGET(pd->menu));
@@ -258,9 +260,9 @@ static gboolean plugin_size_changed(XfcePanelPlugin *plugin,
 
     /* set the widget size */
     if (orientation == GTK_ORIENTATION_HORIZONTAL)
-    gtk_widget_set_size_request (GTK_WIDGET (plugin), -1, size);
+        gtk_widget_set_size_request (GTK_WIDGET (plugin), -1, size);
     else
-    gtk_widget_set_size_request (GTK_WIDGET (plugin), size, -1);
+        gtk_widget_set_size_request (GTK_WIDGET (plugin), size, -1);
 
 
     /* we handled the orientation */

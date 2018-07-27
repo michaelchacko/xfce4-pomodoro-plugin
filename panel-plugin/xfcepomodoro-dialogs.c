@@ -1,4 +1,5 @@
 #ifdef HAVE_CONFIG_H
+
 #include <config.h>
 #endif
 
@@ -15,85 +16,6 @@
 
 /* website url */
 #define PLUGIN_WEBSITE "http://chackotaco.github.io/"
-
-static void
-plugin_configure_response (GtkWidget    *dialog,
-                           gint          response,
-                           PomodoroPlugin *pd) {
-  gboolean result;
-
-  if (response == GTK_RESPONSE_HELP)
-    {
-      /* show help */
-      result = g_spawn_command_line_async ("exo-open --launch WebBrowser " PLUGIN_WEBSITE, NULL);
-
-      if (G_UNLIKELY (result == FALSE))
-        g_warning (_("Unable to open the following url: %s"), PLUGIN_WEBSITE);
-    }
-  else
-    {
-      /* remove the dialog data from the plugin */
-      g_object_set_data (G_OBJECT (pd->xfcePlugin), "dialog", NULL);
-
-      /* unlock the panel menu */
-      xfce_panel_plugin_unblock_menu (pd->xfcePlugin);
-
-      /* save the plugin */
-      config_save(pd->xfcePlugin, pd);
-
-      /* destroy the properties dialog */
-      gtk_widget_destroy (dialog);
-    }
-}
-
-void plugin_configure (XfcePanelPlugin *plugin,
-                       PomodoroPlugin    *pd) {
-  GtkWidget *dialog;
-  GtkWidget *content_area;
-
-  GtkWidget *checkbox_play_ticking;
-  GtkWidget *checkbox_play_alarms;
-
-  /* block the plugin menu */
-  //xfce_panel_plugin_block_menu (plugin);
-
-  /* create the dialog */
-  dialog = xfce_titled_dialog_new_with_buttons (_("Pomodoro Plugin Settings"),
-                                                GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (plugin))),
-                                                GTK_DIALOG_DESTROY_WITH_PARENT,
-                                                "gtk-help", GTK_RESPONSE_HELP,
-                                                "gtk-close", GTK_RESPONSE_OK,
-                                                NULL);
-
-  content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
-
-  /* center dialog on the screen */
-  gtk_window_set_position (GTK_WINDOW (dialog), GTK_WIN_POS_CENTER);
-
-  /* set dialog icon */
-  gtk_window_set_icon_name (GTK_WINDOW (dialog), "xfce4-settings");
-
-  /* link the dialog to the plugin, so we can destroy it when the plugin
-   * is closed, but the dialog is still open */
-  g_object_set_data (G_OBJECT (plugin), "dialog", dialog);
-
-  /* connect the reponse signal to the dialog */
-  g_signal_connect (G_OBJECT (dialog), "response",
-                    G_CALLBACK(plugin_configure_response), pd);
-
-  /* checkbox for ticking sound*/
-  checkbox_play_ticking = gtk_check_button_new_with_label ("Play ticking sound?");
-  gtk_container_add (GTK_CONTAINER (content_area), checkbox_play_ticking);
-
-  /* checkbox for alarm sound*/
-  checkbox_play_alarms = gtk_check_button_new_with_label ("End of session / break alarms");
-  gtk_container_add (GTK_CONTAINER (content_area), checkbox_play_alarms);
-
-  /* show the entire dialog */
-  gtk_widget_show_all (dialog);
-}
-
-
 
 void plugin_about (XfcePanelPlugin *plugin) {
 
@@ -123,32 +45,98 @@ void plugin_about (XfcePanelPlugin *plugin) {
     g_object_unref (G_OBJECT (icon));
 }
 
-// Function to open a dialog box with a message
-void
-quick_message (GtkWindow *parent, gchar *message){
- GtkWidget *dialog, *label, *content_area;
- GtkDialogFlags flags;
+static void
+plugin_configure_response (GtkWidget    *dialog,
+                           gint          response,
+                           PomodoroPlugin *pd) {
+    gboolean result;
+    
+    if(response == GTK_RESPONSE_HELP) //if HELP button is pressed
+    {
+        /* show help */
+        result = g_spawn_command_line_async ("exo-open --launch WebBrowser " PLUGIN_WEBSITE, NULL);
 
- // Create the widgets
- flags = GTK_DIALOG_DESTROY_WITH_PARENT;
- dialog = gtk_dialog_new_with_buttons ("Message",
-                                       parent,
-                                       flags,
-                                       _("_OK"),
-                                       GTK_RESPONSE_NONE,
-                                       NULL);
- content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
- label = gtk_label_new (message);
+        if (G_UNLIKELY (result == FALSE))
+        g_warning (_("Unable to open the following url: %s"), PLUGIN_WEBSITE);
+    }
+    else //else Close button was pressed
+    {
+        /* remove the dialog data from the plugin */
+        g_object_set_data (G_OBJECT (pd->xfcePlugin), "dialog", NULL);
 
- // Ensure that the dialog box is destroyed when the user responds
+        /* unlock the panel menu */
+        xfce_panel_plugin_unblock_menu (pd->xfcePlugin);
 
- g_signal_connect_swapped (dialog,
-                           "response",
-                           G_CALLBACK (gtk_widget_destroy),
-                           dialog);
+        /* save the plugin */
+        config_save(pd->xfcePlugin, pd);
 
- // Add the label, and show everything we’ve added
+        /* destroy the properties dialog */
+        gtk_widget_destroy (dialog);
+    }
+}
 
- gtk_container_add (GTK_CONTAINER (content_area), label);
- gtk_widget_show_all (dialog);
+void plugin_configure (XfcePanelPlugin *plugin,
+                       PomodoroPlugin    *pd) {
+  GtkWidget *dialog;
+  GtkWidget *content_area;
+
+  /* block the plugin menu */
+  xfce_panel_plugin_block_menu (plugin);
+
+  /* create the dialog */
+  dialog = xfce_titled_dialog_new_with_buttons (_("Pomodoro Plugin Settings"),
+                                                GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (plugin))),
+                                                GTK_DIALOG_DESTROY_WITH_PARENT,
+                                                "gtk-help", GTK_RESPONSE_HELP,
+                                                "gtk-close", GTK_RESPONSE_OK,
+                                                NULL);
+
+  content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+
+  /* center dialog on the screen */
+  gtk_window_set_position (GTK_WINDOW (dialog), GTK_WIN_POS_CENTER);
+
+  /* set dialog icon */
+  gtk_window_set_icon_name (GTK_WINDOW (dialog), "xfce4-settings");
+
+  /* link the dialog to the plugin, so we can destroy it when the plugin
+   * is closed, but the dialog is still open */
+  g_object_set_data (G_OBJECT (plugin), "dialog", dialog);
+
+  /* connect the reponse signal to the dialog */
+  g_signal_connect (G_OBJECT (dialog), "response",
+                    G_CALLBACK(plugin_configure_response), pd);
+
+  /* checkbox for ticking sound*/
+  pd->checkbox_play_ticking = gtk_check_button_new_with_label("Play ticking sound?");
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pd->checkbox_play_ticking),
+                               pd->play_ticking); 
+  g_signal_connect(G_OBJECT(pd->checkbox_play_ticking), 
+                            "toggled", 
+                            G_CALLBACK(configdialog_ticking_toggled), pd);
+  gtk_container_add (GTK_CONTAINER (content_area), pd->checkbox_play_ticking);
+
+  /* checkbox for alarm sound*/
+  pd->checkbox_play_alarms = gtk_check_button_new_with_label("End of session / break alarms");
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pd->checkbox_play_alarms),
+                               pd->play_alarms); 
+  g_signal_connect(G_OBJECT(pd->checkbox_play_alarms), 
+                            "toggled", 
+                            G_CALLBACK(configdialog_alarms_toggled), pd);
+  gtk_container_add (GTK_CONTAINER (content_area), pd->checkbox_play_alarms);
+
+  /* show the entire dialog */
+  gtk_widget_show_all (dialog);
+
+}
+
+/* callback functions controlling behaviour for configure settings */
+static void configdialog_ticking_toggled(GtkWidget *widget, PomodoroPlugin *pd)
+{
+    pd->play_ticking = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pd->checkbox_play_ticking)); 
+}
+
+static void configdialog_alarms_toggled(GtkWidget *widget, PomodoroPlugin *pd)
+{
+    pd->play_alarms = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pd->checkbox_play_alarms)); 
 }

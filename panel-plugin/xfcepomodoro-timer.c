@@ -16,7 +16,7 @@
 #define UPDATE_INTERVAL 2000 //frequency to update progress bar in milliseconds
 
 /* timer periods in minutes */
-#define POMODORO_PERIOD      25 
+#define POMODORO_PERIOD      25
 #define SHORT_BREAK_PERIOD   5
 #define LONG_BREAK_PERIOD    30
 
@@ -35,7 +35,8 @@ void start_timer (GtkWidget *pbar, PomodoroPlugin *pd)
     //play ticking sound
     //TODO get this working without mplayer
     //TODO add check box to config dialog to control audio settings
-    system("mplayer -really-quiet ~/repos/xfce4-pomodoro-plugin/audio/ticking.flac &");
+    if(pd->play_ticking)
+        system("mplayer -really-quiet ~/repos/xfce4-pomodoro-plugin/audio/ticking.flac &");
 
     if(pd->timer) {
         g_timer_destroy(pd->timer);
@@ -96,7 +97,8 @@ gboolean update_timer(gpointer data)
 
     /* If program reaches here, the timer has finished! */
     /* play timer finished noise (TODO make path to alert noise dynamic)*/
-    system("mplayer -really-quiet ~/repos/xfce4-pomodoro-plugin/audio/alert.wav > /dev/null 2>&1");
+    if(pd->play_alarms)
+        system("mplayer -really-quiet ~/repos/xfce4-pomodoro-plugin/audio/alert.wav > /dev/null 2>&1");
 
     /* free timer resources */
     if(pd->timer){

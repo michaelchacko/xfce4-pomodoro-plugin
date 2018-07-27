@@ -12,12 +12,13 @@
 #include "xfcepomodoro-dialogs.h"
 #include "xfcepomodoro-config.h"
 
-#define DEFAULT_SETTING1 NULL 
-#define DEFAULT_SETTING2 1
-#define DEFAULT_SETTING3 FALSE
+#define DEFAULT_PLAY_TICKING TRUE 
+#define DEFAULT_PLAY_ALARMS  TRUE
+#define CONFIG_PLAY_TICKING "config_play_ticking"
+#define CONFIG_PLAY_ALARMS  "config_play_alarms"
 
-void config_save (XfcePanelPlugin *plugin,
-             PomodoroPlugin    *pd)
+void config_save(XfcePanelPlugin *plugin,
+                 PomodoroPlugin  *pd)
 {
   XfceRc *rc;
   gchar  *file;
@@ -39,11 +40,8 @@ void config_save (XfcePanelPlugin *plugin,
     {
       /* save the settings */
       DBG(".");
-      if (pd->setting1)
-        xfce_rc_write_entry    (rc, "setting1", pd->setting1);
-
-      xfce_rc_write_int_entry  (rc, "setting2", pd->setting2);
-      xfce_rc_write_bool_entry (rc, "setting3", pd->setting3);
+      xfce_rc_write_bool_entry (rc, CONFIG_PLAY_TICKING, pd->play_ticking);
+      xfce_rc_write_bool_entry (rc, CONFIG_PLAY_ALARMS, pd->play_alarms);
 
       /* close the rc file */
       xfce_rc_close (rc);
@@ -70,11 +68,10 @@ void config_read (PomodoroPlugin *pd)
       if (G_LIKELY (rc != NULL))
         {
           /* read the settings */
-          value = xfce_rc_read_entry (rc, "setting1", DEFAULT_SETTING1);
-          pd->setting1 = g_strdup (value);
-
-          pd->setting2 = xfce_rc_read_int_entry (rc, "setting2", DEFAULT_SETTING2);
-          pd->setting3 = xfce_rc_read_bool_entry (rc, "setting3", DEFAULT_SETTING3);
+          pd->play_ticking = xfce_rc_read_bool_entry(rc, CONFIG_PLAY_TICKING, 
+                                                     DEFAULT_PLAY_TICKING);
+          pd->play_alarms = xfce_rc_read_bool_entry(rc, CONFIG_PLAY_ALARMS, 
+                                                    DEFAULT_PLAY_ALARMS);
 
           /* cleanup */
           xfce_rc_close (rc);
@@ -87,7 +84,6 @@ void config_read (PomodoroPlugin *pd)
   /* something went wrong, apply default values */
   DBG ("Applying default settings");
 
-  pd->setting1 = g_strdup (DEFAULT_SETTING1);
-  pd->setting2 = DEFAULT_SETTING2;
-  pd->setting3 = DEFAULT_SETTING3;
+  pd->play_ticking = DEFAULT_PLAY_TICKING;
+  pd->play_alarms  = DEFAULT_PLAY_ALARMS;
 }
