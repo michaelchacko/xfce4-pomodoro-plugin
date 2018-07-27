@@ -27,6 +27,7 @@ typedef struct {
     GtkWidget *mi_stop_pomodoro;
 
     /* booleans to determine program logic */
+    gboolean   timer_is_pomodoro;
     gboolean   pomodoro_is_running;
     gboolean   break_is_running;
 

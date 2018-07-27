@@ -16,7 +16,7 @@
 #define UPDATE_INTERVAL 2000 //frequency to update progress bar in milliseconds
 
 /* timer periods in minutes */
-#define POMODORO_PERIOD      25
+#define POMODORO_PERIOD      0
 #define SHORT_BREAK_PERIOD   5
 #define LONG_BREAK_PERIOD    30
 
@@ -99,6 +99,8 @@ gboolean update_timer(gpointer data)
     /* play timer finished noise (TODO make path to alert noise dynamic)*/
     if(pd->play_alarms)
         system("mplayer -really-quiet ~/repos/xfce4-pomodoro-plugin/audio/alert.wav > /dev/null 2>&1");
+
+    pomodoro_timer_finished_dialog(pd->xfcePlugin, pd);
 
     /* free timer resources */
     if(pd->timer){
